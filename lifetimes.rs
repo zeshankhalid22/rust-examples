@@ -34,7 +34,8 @@ impl<'a> Iterator for StrSplit<'a> {
         // if delim is not found, return whole
         else {
             let rest = self.remainder;
-            self.remainder = &"";
+            //   &'a str   <- &'static str
+            self.remainder = "";
             Some(rest)
         }
     }
@@ -42,9 +43,12 @@ impl<'a> Iterator for StrSplit<'a> {
 
 
 fn main () {
-    let haystack = "abc, dsd,sd nn, uy";
+    let haystack = "abc, dsd,sd nn, uy, ";
     let letters = StrSplit::new(haystack,", ");
+    let mut j = 0;
     for i in letters{
+        j = j + 1;
         println!("{}",i);
     }
+    println!("Total words broken {}",j);
 }
