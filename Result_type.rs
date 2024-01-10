@@ -1,14 +1,11 @@
 use std::num::ParseIntError;
 
 fn multiply(first_num_str: &str, second_num_str: &str) -> Result<i32,ParseIntError> {
-    // and_then() takes Result, if Err then return error
-    // else if Ok(val), then takes val and return another Ok(val)
-    first_num_str.parse::<i32>().and_then(|first_num|{
-        // map takes val of Ok(val), and return val * x or whatever
-        second_num_str.parse::<i32>().map(|second_num| {
-            first_num * second_num
-        })
-    })
+    // .? operator returns on Err
+    let first_num = first_num_str.parse::<i32>()?;
+    let second_num = second_num_str.parse::<i32>()?;
+
+    Ok(first_num * second_num)
 }
 
 // custom print function to display Result<Ok,Err>
