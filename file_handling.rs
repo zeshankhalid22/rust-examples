@@ -1,22 +1,51 @@
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
-use std::io::SeekFrom::Start;
+
+struct Lines<R> {
+    // BufReader temporarily store's data read from file
+    reader: io::BufReader<R>,
+    buf: String,
+}
+
+impl<R: Read> Lines<R> {
+    fn new(r: R) -> Lines<R> {
+        Lines {
+            reader: io::BufReader::new(r),
+            buf: String::new(),
+        }
+    }
+    // Result<T, io::Error>
+    fn next(&mut self) -> Option<io::Result<&str>> {
+        self.buf.clear();
+        match self.reader.read_line(&mut self.buf) {
+            Ok(nBytes) =>
+                if nBytes == 0 {
+                    None   // 0/no line
+                }
+            else {
+                let line = self.buf.trim_right();
+                Some(Ok(line))
+            }
+            Err(e) => Some(Err(e))
+        }
+    }
+}
+
 
 fn read_all_lines(filename: &str) -> io::Result<()> {
     // file is a handle(identifier to some resource) given by OS
     // to perform operations (abstracted)
     let file = File::open(&filename)?;
-    // BufReader temporarily store's data read from file
-    let mut reader = io::BufReader::new(file);
 
-    let mut buf = String::new();
+    let mut lines = Lines::new(file);
 
-    while reader.read_line(&mut buf)? > 0 {
-        let line = buf.trim_right();
-        println!("{}",line);
+
+    while let Some(line) = lines.next()  {
+        // if line Err, return
+        let line = line?;
+        println!("{}", line);
     }
-    buf.clear();
 
     // * Inefficient, new string is allocated for each line
     // for line in reader.lines() {
@@ -26,7 +55,6 @@ fn read_all_lines(filename: &str) -> io::Result<()> {
     Ok(())
 }
 
-fn main () {
-   read_all_lines("input.txt");
-
+fn main() {
+    read_all_lines("input.txt");
 }
