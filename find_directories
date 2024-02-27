@@ -1,0 +1,50 @@
+use std::collections::VecDeque;
+use std::{env, fs};
+use std::path::PathBuf;
+
+fn count(name: &str, max_depth: usize) -> std::io::Result<usize> {
+    let mut count = 0;
+    let mut queue= VecDeque::new();
+
+    queue.push_back((PathBuf::from("."), 0));
+    loop {
+       if queue.is_empty() {
+           break;
+       }
+        let (path, curr_depth) = queue.pop_back().unwrap();
+        if(curr_depth > max_depth) {
+            continue;
+        }
+
+        for dir in fs::read_dir(path)? {
+            let dir = dir?; // unwrap Result<DirEntry> to DirEntry as struct
+
+            if dir.file_type()?.is_dir() {
+                if dir.file_name() == name {
+                    // matched
+                    count += 1;
+                }
+                else {
+                    // check sub-dirs
+                    queue.push_back((dir.path(), curr_depth + 1));
+                }
+            }
+        }
+    }
+
+    return Ok(count);
+}
+
+fn get_arguments() {
+    let args: Vec<_> = std::env::args().collect();
+    let mdepth = if args.len() > 2 {
+        args[2].parse().unwrap()
+    } else {
+        usize::MAX
+    };
+    println!("{:?}", count(&args[1], mdepth));
+}
+
+fn main() {
+    get_arguments();
+}
